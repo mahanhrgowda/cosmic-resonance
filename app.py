@@ -1,141 +1,150 @@
 import streamlit as st
-from datetime import datetime
-import numpy as np
-import pytz
-import plotly.graph_objects as go
-import matplotlib.pyplot as plt
+from datetime import datetime, timedelta
+import time
 
-# Title with emoji
-st.title("Cosmic Birth Resonance Explorer 🌟🔮")
+# Define the elements and their string theory mappings with emojis
+elements = {
+    0: {"name": "Fire (Type I)", "emoji": "🔥", "qualities": "Heat, transformation, dynamism"},
+    1: {"name": "Water (Type IIA)", "emoji": "💧", "qualities": "Fluidity, cohesion, adaptability"},
+    2: {"name": "Air (Type IIB)", "emoji": "🌬️", "qualities": "Mobility, lightness, expansion"},
+    3: {"name": "Earth (Heterotic SO(32))", "emoji": "🌍", "qualities": "Stability, solidity, grounding"},
+    4: {"name": "Ether (Heterotic E8×E8)", "emoji": "✨", "qualities": "Space, subtlety, connectivity"}
+}
 
-# Fun intro
-st.write("Enter two birth details and discover their cosmic resonance! 🎉 Using the triple helix model linked to string theory and the mantra 'Om Śrīṁ Bhūṁ Nīlāṁ Agni-Nābhiṁ Prabodhaya Svāhā', we'll map births to divine strings and calculate resonance! ✨")
+# Predefined connections based on the research analogies
+connections = {
+    ("Fire (Type I)", "Air (Type IIB)"): {
+        "resonance": "High", "harmony": "Amplifying 💥", 
+        "description": "Like wind fueling a flame! Your times resonate with dynamic energy transfer, echoing S-duality in string theory. Perfect for adventurous souls! 🌟"
+    },
+    ("Water (Type IIA)", "Ether (Heterotic E8×E8)"): {
+        "resonance": "Moderate", "harmony": "Subtle Flow 🌊✨", 
+        "description": "Ripples in the cosmic void! Fluid adaptability meets pervasive space, linked by T-duality. Ideal for deep, intuitive connections! 🌀"
+    },
+    ("Earth (Heterotic SO(32))", "Fire (Type I)"): {
+        "resonance": "Low", "harmony": "Tempered Strength 🔥🌍", 
+        "description": "Fire refines earth into strength! Grounded stability meets transformative heat, stabilized by anomaly cancellations. Great for building lasting bonds! ⚒️"
+    },
+    ("Air (Type IIB)", "Water (Type IIA)"): {
+        "resonance": "Variable", "harmony": "Stormy Cycles 🌬️💧", 
+        "description": "Winds over waves create epic cycles! Mobility blends with flow via T-duality. Fun for creative, evolving partnerships! ☁️"
+    },
+    ("Ether (Heterotic E8×E8)", "Earth (Heterotic SO(32))"): {
+        "resonance": "Deep", "harmony": "Foundational Unity ✨🌍", 
+        "description": "Ether pervades earth in timeless unity! Connected via M-theory's hidden dimensions. For profound, grounded harmonies! 🌌"
+    },
+    # Add reverses for symmetry
+    ("Air (Type IIB)", "Fire (Type I)"): {
+        "resonance": "High", "harmony": "Amplifying 💥", 
+        "description": "Like wind fueling a flame! Your times resonate with dynamic energy transfer, echoing S-duality in string theory. Perfect for adventurous souls! 🌟"
+    },
+    ("Ether (Heterotic E8×E8)", "Water (Type IIA)"): {
+        "resonance": "Moderate", "harmony": "Subtle Flow 🌊✨", 
+        "description": "Ripples in the cosmic void! Fluid adaptability meets pervasive space, linked by T-duality. Ideal for deep, intuitive connections! 🌀"
+    },
+    ("Fire (Type I)", "Earth (Heterotic SO(32))"): {
+        "resonance": "Low", "harmony": "Tempered Strength 🔥🌍", 
+        "description": "Fire refines earth into strength! Grounded stability meets transformative heat, stabilized by anomaly cancellations. Great for building lasting bonds! ⚒️"
+    },
+    ("Water (Type IIA)", "Air (Type IIB)"): {
+        "resonance": "Variable", "harmony": "Stormy Cycles 🌬️💧", 
+        "description": "Winds over waves create epic cycles! Mobility blends with flow via T-duality. Fun for creative, evolving partnerships! ☁️"
+    },
+    ("Earth (Heterotic SO(32))", "Ether (Heterotic E8×E8)"): {
+        "resonance": "Deep", "harmony": "Foundational Unity ✨🌍", 
+        "description": "Ether pervades earth in timeless unity! Connected via M-theory's hidden dimensions. For profound, grounded harmonies! 🌌"
+    },
+    # Same element cases
+    ("Fire (Type I)", "Fire (Type I)"): {
+        "resonance": "Explosive", "harmony": "Blazing Sync 🔥🔥", 
+        "description": "Twin flames ignite the cosmos! Perfect vibrational match in Type I strings. Super dynamic duo! 💥"
+    },
+    ("Water (Type IIA)", "Water (Type IIA)"): {
+        "resonance": "Flowing", "harmony": "Oceanic Merge 💧💧", 
+        "description": "Waves in harmony! Cohesive fluidity doubles via IIA dualities. Deep emotional bonds! 🌊"
+    },
+    ("Air (Type IIB)", "Air (Type IIB)"): {
+        "resonance": "Whirling", "harmony": "Breezy Freedom 🌬️🌬️", 
+        "description": "Winds dancing together! Self-dual expansions in IIB. Free-spirited adventures await! 🌀"
+    },
+    ("Earth (Heterotic SO(32))", "Earth (Heterotic SO(32))"): {
+        "resonance": "Solid", "harmony": "Rock Steady 🌍🌍", 
+        "description": "Unshakeable foundations! Hybrid stability in SO(32). Reliable partners forever! 🏔️"
+    },
+    ("Ether (Heterotic E8×E8)", "Ether (Heterotic E8×E8)"): {
+        "resonance": "Eternal", "harmony": "Cosmic Void ✨✨", 
+        "description": "Infinite connectivity! Exceptional unity in E8×E8. Timeless soul links! 🌌"
+    },
+    # Default for unmapped pairs (add more if needed, but for fun, generalize)
+}
 
-# Input Section
-st.header("Enter Birth Details")
-col1, col2 = st.columns(2)
+# Function to get default connection if not predefined
+def get_default_connection(elem1, elem2):
+    return {
+        "resonance": "Mysterious", "harmony": "Quantum Surprise ❓", 
+        "description": f"{elem1['emoji']} meets {elem2['emoji']} in a wild string twist! Explore uncharted resonances in the multiverse. Fun surprises ahead! 🎉"
+    }
 
-with col1:
-    name1 = st.text_input("First Person's Name", value="Explorer 1")
-    date1 = st.date_input("First Birth Date", value=datetime(1993, 7, 12).date())
-    time1 = st.time_input("First Birth Time", value=datetime.strptime("12:26 PM", "%I:%M %p").time())
-    tz1 = st.selectbox("First Time Zone", pytz.all_timezones, index=pytz.all_timezones.index("Asia/Kolkata"))
+# Function to map datetime to element index (pseudo-scientific vibration calc)
+def get_element_index(birth_dt):
+    # Sum components for 'vibration'
+    vibration = birth_dt.year + birth_dt.month + birth_dt.day + birth_dt.hour + birth_dt.minute + birth_dt.second
+    # Modulo 5 for 5 elements
+    return vibration % 5
 
-with col2:
-    name2 = st.text_input("Second Person's Name", value="Explorer 2")
-    date2 = st.date_input("Second Birth Date", value=datetime(1993, 1, 1).date())
-    time2 = st.time_input("Second Birth Time", value=datetime.strptime("12:00 AM", "%I:%M %p").time())
-    tz2 = st.selectbox("Second Time Zone", pytz.all_timezones, index=pytz.all_timezones.index("UTC"))
+# Streamlit app
+st.title("🌌 String Theory Soulmates: Elemental Harmony Calculator! ✨")
 
-if st.button("Calculate Cosmic Resonance! 🚀"):
-    # Fun effects
-    st.balloons()
+st.markdown("""
+Welcome to this fun app inspired by string theory and ancient Panchabhuta elements! 🎉  
+Enter the birth dates and exact times (down to seconds) for two people, and discover their spacetime connection.  
+Rooted in physics analogies: Your birth moments map to vibrating strings and elements, revealing resonance and harmony! 🚀  
+""")
 
-    # Convert to UTC
-    def to_utc(date, time, tz_name):
-        tz = pytz.timezone(tz_name)
-        dt = datetime.combine(date, time).replace(tzinfo=tz)
-        return dt.astimezone(pytz.UTC)
+# Input for Person 1
+st.header("Person 1 👤")
+date1 = st.date_input("Birth Date (Person 1)", value=datetime(2000, 1, 1))
+time1 = st.time_input("Birth Time (Person 1)", value=datetime(2000, 1, 1, 12, 0, 0).time())
+sec1 = st.slider("Birth Second (Person 1)", 0, 59, 0)
+birth1 = datetime(date1.year, date1.month, date1.day, time1.hour, time1.minute, sec1)
 
-    dt1_utc = to_utc(date1, time1, tz1)
-    dt2_utc = to_utc(date2, time2, tz2)
-    st.write(f"{name1}'s Birth in UTC: {dt1_utc.strftime('%Y-%m-%d %H:%M:%S')} ⏰")
-    st.write(f"{name2}'s Birth in UTC: {dt2_utc.strftime('%Y-%m-%d %H:%M:%S')} ⏰")
+# Input for Person 2
+st.header("Person 2 👥")
+date2 = st.date_input("Birth Date (Person 2)", value=datetime(2000, 1, 1))
+time2 = st.time_input("Birth Time (Person 2)", value=datetime(2000, 1, 1, 12, 0, 0).time())
+sec2 = st.slider("Birth Second (Person 2)", 0, 59, 0)
+birth2 = datetime(date2.year, date2.month, date2.day, time2.hour, time2.minute, sec2)
 
-    # Reference date (Jan 1, 1900, UTC)
-    ref_date = datetime(1900, 1, 1, 0, 0, 0, tzinfo=pytz.UTC)
-    seconds1 = (dt1_utc - ref_date).total_seconds()
-    seconds2 = (dt2_utc - ref_date).total_seconds()
-
-    # Scale factor rooted in science (approx seconds in 7.44 years, from original model)
-    scale_factor = 7.44 * 365.25 * 24 * 3600  # Years to seconds, ~234,436,800 seconds per Z unit
-    z1 = seconds1 / scale_factor
-    z2 = seconds2 / scale_factor
-    st.write(f"{name1}'s Cosmic Z-Value: {z1:.6f} 🌌")
-    st.write(f"{name2}'s Cosmic Z-Value: {z2:.6f} 🌌")
-
-    # Dominant Energy (Shri, Bhu, Nila) using phase from helical model
-    def get_dominant_energy(z):
-        phase = np.sin(0.5 * z)  # Frequency from helical parameterization
-        if phase > 0.33:
-            return "Śrī (Prosperity) 💰✨ - Linked to open strings for dynamic interactions!"
-        elif phase > -0.33:
-            return "Bhū (Material Grounding) 🌍🏔️ - Linked to closed strings for gravitational stability!"
-        else:
-            return "Nīlā (Compassion) ❤️🙏 - Linked to heterotic strings for unifying symmetries!"
-
-    energy1 = get_dominant_energy(z1)
-    energy2 = get_dominant_energy(z2)
-    st.write(f"{name1}'s Dominant Divine Energy: {energy1}")
-    st.write(f"{name2}'s Dominant Divine Energy: {energy2}")
-
-    # Cosmic Resonance Calculation (rooted in wave interference, like in quantum mechanics or string vibrations)
-    delta_z = abs(z1 - z2)
-    phase_diff = 0.5 * delta_z  # Phase difference from helical frequency
-    resonance_score = (1 + np.cos(phase_diff)) / 2  # Interference formula, 1=perfect resonance, 0=no resonance
-    st.write(f"Cosmic Resonance Score (0-1, 1=perfect wave alignment): {resonance_score:.2f} 🌊")
-
-    # Cosmic Alignment Year (midpoint in years, like barycenter in physics)
-    midpoint_seconds = (seconds1 + seconds2) / 2
-    alignment_date = ref_date + timedelta(seconds=midpoint_seconds)
-    alignment_year = alignment_date.year
-    st.write(f"Cosmic Alignment Year (barycenter-like midpoint): {alignment_year} CE - Where your energies harmonize! ⭐")
-
-    # Time Harmony (time dilation-inspired, using relative time difference)
-    time_diff_seconds = abs(seconds1 - seconds2)
-    time_diff_years = time_diff_seconds / (365.25 * 24 * 3600)
-    harmony_score = np.exp(-time_diff_years / 7.44)  # Exponential decay, like relativistic effects, scaled to original factor
-    st.write(f"Time Harmony Score (0-1, 1=close in time): {harmony_score:.2f} ⏳")
-
-    # Mantra Interpretation with linkage
-    st.subheader("Mantra Magic 🔮")
-    st.write("The mantra 'Om Śrīṁ Bhūṁ Nīlāṁ Agni-Nābhiṁ Prabodhaya Svāhā' awakens fiery energy at the cosmic center! 🌋")
-    st.write("Link to Triple Helix and String Theory: The triple helix model, with strands for Śrī, Bhū, and Nīlā, mirrors string theory's open, closed, and heterotic strings in the spacetime continuum. Śrīṁ invokes prosperity through open strings' dynamic interactions (particle-like vibrations in branes), Bhūṁ grounds material reality via closed strings' loops (gravitons mediating gravity in the block universe), and Nīlāṁ unifies compassion with heterotic strings' hybrid symmetries (E8×E8 or SO(32) gauge groups addressing low-energy unification). Convergence points, like your births, are wave peaks where these strings align, resonating in the eternal block universe! 🌊🔗")
-
-    # 3D Helical Plot using Plotly
-    st.subheader("3D Helical Plot with Birth Positions")
-    Z = np.linspace(-6000, 2100, 1000)  # Years BCE to CE
-    phi = [0, 2*np.pi/3, 4*np.pi/3]  # Phase shifts
-    data = []
-    for i, color in enumerate(['#FFD700', '#FF8C00', '#FF0000']):  # Gold, Orange, Red
-        X = 0.5 * np.sin(0.000001 * Z + phi[i])
-        Y = 0.25 * np.cos(0.000001 * Z + phi[i])
-        trace = go.Scatter3d(x=X, y=Y, z=Z, mode='lines', name=f'Strand {i+1}', line=dict(color=color))
-        data.append(trace)
-
-    # Birth markers
-    birth_markers = [
-        go.Scatter3d(x=[0], y=[0], z=[dt1_utc.year], mode='markers+text', name=f'{name1}',
-                     marker=dict(symbol='circle', size=10, color='#0000FF'),
-                     text=[f'{name1}: {dt1_utc.strftime("%Y-%m-%d %H:%M")}'], textposition="top center"),
-        go.Scatter3d(x=[0], y=[0], z=[dt2_utc.year], mode='markers+text', name=f'{name2}',
-                     marker=dict(symbol='circle', size=10, color='#00FF00'),
-                     text=[f'{name2}: {dt2_utc.strftime("%Y-%m-%d %H:%M")}'], textposition="top center")
-    ]
-    data.extend(birth_markers)
-
-    fig = go.Figure(data=data)
-    fig.update_layout(scene=dict(xaxis_title='Time Strand (-1 to 1)',
-                                 yaxis_title='Cosmic Flow (-1 to -0.25)',
-                                 zaxis_title='Year (BCE/CE)'),
-                      title='Triple Helix with Birth Positions')
-    st.plotly_chart(fig)
-
-    # Timeline Plot
-    st.subheader("Timeline Plot with Birth Positions")
-    fig, ax = plt.subplots(figsize=(10, 6))
-    ax.plot([dt1_utc.year, dt2_utc.year], [0, 0], 'bo-', label='Births')
-    ax.plot(dt1_utc.year, 0, 'bo', label=name1)
-    ax.plot(dt2_utc.year, 0, 'go', label=name2)
-    ax.text(dt1_utc.year, 0.1, f'{name1}: {dt1_utc.strftime("%Y-%m-%d %H:%M")}', rotation=45, fontsize=8)
-    ax.text(dt2_utc.year, 0.1, f'{name2}: {dt2_utc.strftime("%Y-%m-%d %H:%M")}', rotation=45, fontsize=8)
-    ax.set_xlabel('Year (CE)')
-    ax.set_ylabel('Convergence Level')
-    ax.set_title('Timeline of Birth Positions')
-    ax.grid(True)
-    ax.legend()
-    st.pyplot(fig)
-
-    # Fun effects
-    st.success("Cosmic connection unlocked! Share your resonance story! 😊")
-    st.confetti()  # Assuming available, or simulate with text
+if st.button("Calculate Harmony! 🔮"):
+    if birth1 == birth2:
+        st.warning("Birth times are identical! In spacetime, that's a singularity—try different times! ⚠️")
+    else:
+        # Get elements
+        idx1 = get_element_index(birth1)
+        idx2 = get_element_index(birth2)
+        elem1 = elements[idx1]
+        elem2 = elements[idx2]
+        
+        # Time difference for fun 'resonance factor'
+        delta = abs(birth1 - birth2)
+        days_diff = delta.days
+        resonance_factor = (days_diff % 11) * 10  # Nod to 11D M-theory, fun score 0-100
+        
+        st.header("Your Elemental Mappings 🌟")
+        st.markdown(f"**Person 1:** {elem1['name']} {elem1['emoji']} - {elem1['qualities']}")
+        st.markdown(f"**Person 2:** {elem2['name']} {elem2['emoji']} - {elem2['qualities']}")
+        
+        # Get connection
+        key = (elem1['name'], elem2['name'])
+        conn = connections.get(key, get_default_connection(elem1, elem2))
+        
+        st.header("Spacetime Connection Analysis 🪐")
+        st.markdown(f"**Resonance:** {conn['resonance']} {elem1['emoji']}{elem2['emoji']}")
+        st.markdown(f"**Harmony:** {conn['harmony']}")
+        st.markdown(f"**Description:** {conn['description']}")
+        st.markdown(f"**Compatibility Score (M-Theory Inspired):** {resonance_factor}% ❤️")
+        
+        # Fun animation
+        with st.spinner("Vibrating strings in higher dimensions..."):
+            time.sleep(1)
+        st.balloons()
