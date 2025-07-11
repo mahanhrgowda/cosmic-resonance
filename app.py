@@ -104,14 +104,14 @@ Rooted in physics analogies: Your birth moments map to vibrating strings and ele
 # Input for Person 1
 st.header("Person 1 👤")
 date1 = st.date_input("Birth Date (Person 1)", value=datetime(2000, 1, 1))
-time1 = st.time_input("Birth Time (Person 1)", value=datetime(2000, 1, 1, 12, 0, 0).time())
+time1 = st.time_input("Birth Time (Person 1)", value=datetime(2000, 1, 1, 12, 0, 0).time(), step=timedelta(minutes=1))
 sec1 = st.slider("Birth Second (Person 1)", 0, 59, 0)
 birth1 = datetime(date1.year, date1.month, date1.day, time1.hour, time1.minute, sec1)
 
 # Input for Person 2
 st.header("Person 2 👥")
 date2 = st.date_input("Birth Date (Person 2)", value=datetime(2000, 1, 1))
-time2 = st.time_input("Birth Time (Person 2)", value=datetime(2000, 1, 1, 12, 0, 0).time())
+time2 = st.time_input("Birth Time (Person 2)", value=datetime(2000, 1, 1, 12, 0, 0).time(), step=timedelta(minutes=1))
 sec2 = st.slider("Birth Second (Person 2)", 0, 59, 0)
 birth2 = datetime(date2.year, date2.month, date2.day, time2.hour, time2.minute, sec2)
 
